@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Chấm công GPS</title>
+</head>
+<body>
+  <h2>Form Chấm Công GPS</h2>
+  <form id="checkinForm">
+    <label for="empId">Mã nhân viên:</label><br>
+    <input type="text" id="empId" required><br><br>
+
+    <label for="empName">Họ và tên nhân viên:</label><br>
+    <input type="text" id="empName" required><br><br>
+
+    <button type="submit">Chấm công</button>
+  </form>
+
+  <p id="status"></p>
+
+  <script>
+    document.getElementById("checkinForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      if (!navigator.geolocation) {
+        alert("Trình duyệt của bạn không hỗ trợ định vị GPS.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(success, error);
+
+      function success(position) {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        const data = {
+          EmployeeId: document.getElementById("empId").value,
+          EmployeeName: document.getElementById("empName").value,
+          Latitude: latitude,
+          Longitude: longitude
+        };
+
+        fetch("http://127.0.0.1:5050/api/checkin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+          document.getElementById("status").innerText = result.message;
+        })
+        .catch(err => {
+          document.getElementById("status").innerText = "Chấm công thất bại.";
+        });
+      }
+
+      function error() {
+        document.getElementById("status").innerText = "Không thể lấy vị trí của bạn.";
+      }
+    });
+  </script>
+</body>
+</html>
